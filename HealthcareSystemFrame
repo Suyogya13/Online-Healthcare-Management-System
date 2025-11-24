@@ -115,7 +115,7 @@ static class HealthcareSystemFrame extends JFrame {
                     return;
                 }
 
-                User u = authenticate(username, password); // uses your existing method
+                User u = authenticate(username, password); 
                 if (u == null) {
                     messageLabel.setText("Invalid credentials.");
                 } else {
