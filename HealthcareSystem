@@ -1,4 +1,11 @@
 import java.util.*;
+import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 public class HealthcareSystem {
      static List<User> users = new ArrayList<>();
      static List<Appointment> appointments = new ArrayList<>();
@@ -6,7 +13,8 @@ public class HealthcareSystem {
      static Scanner scanner = new Scanner(System.in);
 
      public static void main(String[] args) {
-        seedDemoData(); 
+      seedDemoData();
+     javax.swing.SwingUtilities.invokeLater(() -> new HealthcareSystemFrame()); 
         System.out.println("Welcome to the Online Healthcare Management System (Console Demo)");
         while (true) {
             System.out.println("\n1. Register  2. Login  3. Exit");
