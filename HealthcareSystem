@@ -1,0 +1,412 @@
+import java.util.*;
+public class HealthcareSystem {
+     static List<User> users = new ArrayList<>();
+     static List<Appointment> appointments = new ArrayList<>();
+     static int appointmentIdCounter = 1;
+     static Scanner scanner = new Scanner(System.in);
+
+     public static void main(String[] args) {
+        seedDemoData(); 
+        System.out.println("Welcome to the Online Healthcare Management System (Console Demo)");
+        while (true) {
+            System.out.println("\n1. Register  2. Login  3. Exit");
+            System.out.print("Choose: ");
+            String choice = scanner.nextLine().trim();
+            switch (choice) {
+                case "1": 
+                registerMenu(); 
+                break;
+                case "2": 
+                loginMenu(); 
+                break;
+                case "3": 
+                System.out.println("Goodbye!");
+                System.exit(0);
+                break;
+                default: 
+                System.out.println("Invalid choice.");
+            }
+        }
+    }
+    private static void registerMenu() {
+        System.out.println("\nRegister as: 1. Patient  2. Doctor");
+        System.out.print("Choose: ");
+        String c = scanner.nextLine().trim();
+        System.out.print("Enter username: "); 
+        String username = scanner.nextLine().trim();
+        System.out.print("Enter password: "); 
+        String password = scanner.nextLine().trim();
+        if (getUserByUsername(username) != null) {
+            System.out.println("Username already exists.");
+            return;
+        }
+        if (c.equals("1")) {
+            System.out.print("Enter patient full name: "); 
+            String name = scanner.nextLine().trim();
+            System.out.print("Enter age: "); 
+            int age = readInt();
+            Patient p = new Patient(username, password, name, age);
+            users.add(p);
+            System.out.println("Patient registered successfully.");
+        } else if (c.equals("2")) {
+            System.out.print("Enter doctor full name: "); 
+            String name = scanner.nextLine().trim();
+            System.out.print("Enter specialization: "); 
+            String spec = scanner.nextLine().trim();
+            Doctor d = new Doctor(username, password, name, spec);
+            users.add(d);
+            System.out.println("Doctor registered successfully.");
+        } else {
+            System.out.println("Invalid option.");
+        }
+    }
+    private static void loginMenu() {
+        System.out.print("\nUsername: ");
+        String username = scanner.nextLine().trim();
+        System.out.print("Password: "); 
+        String password = scanner.nextLine().trim();
+        User u = authenticate(username, password);
+        if (u == null) {
+            System.out.println("Invalid credentials.");
+            return;
+        }
+        System.out.println("Login successful. Welcome, " + u.getDisplayName() + " (" + u.getRole() + ")");
+        if (u instanceof Patient) patientMenu((Patient) u);
+        else if (u instanceof Doctor) doctorMenu((Doctor) u);
+        else if (u instanceof Admin) adminMenu((Admin) u);
+        else System.out.println("Unknown role.");
+    }
+    private static void patientMenu(Patient p) {
+        while (true) {
+            System.out.println("\nPatient Menu ");
+            System.out.println("1. View profile  2. Search Doctors  3. Book Appointment  4. View My Appointments");
+            System.out.println("5. View Medical Records  6. Logout");
+            System.out.print("Choose: ");
+            String c = scanner.nextLine().trim();
+            switch (c) {
+                case "1": System.out.println(p); break;
+                case "2": listDoctors(); break;
+                case "3": bookAppointment(p); break;
+                case "4": viewAppointmentsForUser(p.getUsername()); break;
+                case "5": viewMyMedicalRecords(p); break;
+                case "6": return;
+                default: System.out.println("Invalid choice.");
+            }
+        }
+    }
+    private static void doctorMenu(Doctor d) {
+        while (true) {
+            System.out.println("\nDoctor Menu");
+            System.out.println("1) View profile  2) View My Appointments  3) Approve/Reject Appointments");
+            System.out.println("4) Add Medical Record  5) View Patients  6) Logout");
+            System.out.print("Choose: ");
+            String c = scanner.nextLine().trim();
+            switch (c) {
+                case "1": System.out.println(d); break;
+                case "2": viewAppointmentsForUser(d.getUsername()); break;
+                case "3": handleAppointmentRequests(d); break;
+                case "4": addMedicalRecord(d); break;
+                case "5": listPatients(); break;
+                case "6": return;
+                default: System.out.println("Invalid choice.");
+            }
+        }
+    }
+    private static void adminMenu(Admin a) {
+        while (true) {
+            System.out.println("\nAdmin Menu");
+            System.out.println("1) View all users  2) View all appointments  3) Logout");
+            System.out.print("Choose: ");
+            String c = scanner.nextLine().trim();
+            switch (c) {
+                case "1": listAllUsers(); break;
+                case "2": listAllAppointments(); break;
+                case "3": return;
+                default: System.out.println("Invalid choice.");
+            }
+        }
+    }
+    private static void listDoctors() {
+        System.out.println("\nDoctors");
+        boolean found = false;
+        for (User u : users) {
+            if (u instanceof Doctor) {
+                System.out.println(u);
+                found = true;
+            }
+        }
+        if (!found) System.out.println("No doctors found.");
+    }
+
+    private static void listPatients() {
+        System.out.println("\nPatients");
+        boolean found = false;
+        for (User u : users) {
+            if (u instanceof Patient) {
+                System.out.println(u);
+                found = true;
+            }
+        }
+        if (!found) System.out.println("No patients found.");
+    }
+
+    private static void listAllUsers() {
+        System.out.println("\nAll Users");
+        for (User u : users) System.out.println(u);
+    }
+
+    private static void bookAppointment(Patient p) {
+        System.out.println("\nBook Appointment");
+        listDoctors();
+        System.out.print("Enter doctor's username: ");
+        String docUsername = scanner.nextLine().trim();
+        User du = getUserByUsername(docUsername);
+        if (!(du instanceof Doctor)) {
+            System.out.println("Invalid doctor username.");
+            return;
+        }
+        System.out.print("Enter date/time (e.g. 2025-11-20 10:30): "); String datetime = scanner.nextLine().trim();
+        Appointment ap = new Appointment(appointmentIdCounter++, p.getUsername(), docUsername, datetime);
+        appointments.add(ap);
+        System.out.println("Appointment request created with ID: " + ap.getId() + ". Status: " + ap.getStatus());
+    }
+
+    private static void viewAppointmentsForUser(String username) {
+        System.out.println("\nAppointments for " + username + " ---");
+        boolean found = false;
+        for (Appointment a : appointments) {
+            if (a.getPatientUsername().equals(username) || a.getDoctorUsername().equals(username)) {
+                System.out.println(a);
+                found = true;
+            }
+        }
+        if (!found) System.out.println("No appointments.");
+    }
+
+    private static void listAllAppointments() {
+        System.out.println("\nAll Appointments");
+        if (appointments.isEmpty()) System.out.println("No appointments.");
+        for (Appointment a : appointments) System.out.println(a);
+    }
+
+    private static void handleAppointmentRequests(Doctor d) {
+        System.out.println("\nPending Appointments for Dr. " + d.getName() + " ---");
+        List<Appointment> pending = new ArrayList<>();
+        for (Appointment a : appointments) {
+            if (a.getDoctorUsername().equals(d.getUsername()) && a.getStatus() == Appointment.Status.REQUESTED) {
+                pending.add(a);
+            }
+        }
+        if (pending.isEmpty()) {
+            System.out.println("No pending requests.");
+            return;
+        }
+        for (Appointment a : pending) {
+            System.out.println(a);
+            System.out.print("Approve (a) / Reject (r) / Skip (s): ");
+            String c = scanner.nextLine().trim().toLowerCase();
+            if (c.equals("a")) {
+                a.setStatus(Appointment.Status.APPROVED);
+                System.out.println("Approved.");
+            } else if (c.equals("r")) {
+                a.setStatus(Appointment.Status.REJECTED);
+                System.out.println("Rejected.");
+            } else {
+                System.out.println("Skipped.");
+            }
+        }
+    }
+
+    private static void addMedicalRecord(Doctor d) {
+        System.out.print("\nEnter patient username to add record: ");
+        String patientUsername = scanner.nextLine().trim();
+        User pu = getUserByUsername(patientUsername);
+        if (!(pu instanceof Patient)) {
+            System.out.println("Invalid patient username.");
+            return;
+        }
+        System.out.print("Enter diagnosis: "); 
+        String diag = scanner.nextLine().trim();
+        System.out.print("Enter prescription: "); 
+        String presc = scanner.nextLine().trim();
+        MedicalRecord mr = new MedicalRecord(d.getUsername(), new Date(), diag, presc);
+        ((Patient) pu).addMedicalRecord(mr);
+        System.out.println("Medical record added for " + pu.getDisplayName());
+    }
+
+    private static void viewMyMedicalRecords(Patient p) {
+        System.out.println("\n Medical Records for " + p.getName() + " ---");
+        if (p.getRecords().isEmpty()) {
+            System.out.println("No records found.");
+            return;
+        }
+        for (MedicalRecord r : p.getRecords()) {
+            System.out.println(r);
+        }
+    }
+    private static User getUserByUsername(String username) {
+        for (User u : users) if (u.getUsername().equals(username)) return u;
+        return null;
+    }
+
+    private static User authenticate(String username, String password) {
+        User u = getUserByUsername(username);
+        if (u != null && u.getPassword().equals(password)){
+             return u;
+            }
+        return null;
+    }
+
+    private static int readInt() {
+        try {
+             return Integer.parseInt(scanner.nextLine().trim());
+             }
+        catch (Exception e) {
+             return 0; 
+            }
+    }
+
+    private static void seedDemoData() {
+        users.add(new Admin("admin", "admin123", "System Admin"));
+        users.add(new Doctor("dr_raj", "doc123", "Dr. Raj Sharma", "Cardiology"));
+        users.add(new Doctor("dr_sita", "doc123", "Dr. Sita Verma", "General Medicine"));
+        Patient p1 = new Patient("peter", "pass", "Peter Parker", 22);
+        p1.addMedicalRecord(new MedicalRecord("dr_raj", new Date(), "Hypertension", "Medicine A - 1 tab daily"));
+        users.add(p1);
+        users.add(new Patient("arya", "pass", "Arya Stark", 20));
+    }
+    static abstract class User {
+        String username, password;
+        String displayName;
+        public User(String username, String password, String displayName) {
+            this.username = username; 
+            this.password = password; 
+            this.displayName = displayName;
+        }
+        public String getUsername() { 
+            return username; 
+        }
+        public String getPassword() {
+             return password;
+             }
+        public String getDisplayName() {
+             return displayName;
+             }
+        public abstract String getRole();
+        public String toString() {
+            return String.format("[%s] username=%s, name=%s", getRole(), username, displayName);
+        }
+    }
+
+    static class Patient extends User {
+        String name;
+        int age;
+        List<MedicalRecord> records = new ArrayList<>();
+        public Patient(String username, String password, String name, int age) {
+            super(username, password, name);
+            this.name = name; 
+            this.age = age;
+        }
+        public String getRole() {
+             return "Patient"; 
+            }
+        public void addMedicalRecord(MedicalRecord r) {
+             records.add(r);
+             }
+        public List<MedicalRecord> getRecords() {
+             return records; 
+            }
+        public String getName() { 
+            return name;
+         }
+        @Override public String toString() {
+            return String.format("[Patient] username=%s, name=%s, age=%d, records=%d",
+                    getUsername(), name, age, records.size());
+        }
+    }
+
+    static class Doctor extends User {
+        String name;
+        String specialization;
+        public Doctor(String username, String password, String name, String specialization) {
+            super(username, password, name);
+            this.name = name; 
+            this.specialization = specialization;
+        }
+        public String getRole() {
+             return "Doctor"; 
+            }
+        public String getName() { 
+            return name; 
+        }
+        public String getSpecialization() { 
+            return specialization; 
+        }
+        @Override public String toString() {
+            return String.format("[Doctor] username=%s, name=%s, specialization=%s",
+                    getUsername(), name, specialization);
+        }
+    }
+
+    static class Admin extends User {
+        String name;
+        public Admin(String username, String password, String name) {
+            super(username, password, name);
+            this.name = name;
+        }
+        public String getRole() { 
+            return "Admin";
+        }
+    }
+
+    static class Appointment {
+        enum Status { REQUESTED, APPROVED, REJECTED }
+         int id;
+         String patientUsername;
+         String doctorUsername;
+         String dateTime;
+         Status status;
+        public Appointment(int id, String patientUsername, String doctorUsername, String dateTime) {
+            this.id = id; 
+            this.patientUsername = patientUsername;
+            this.doctorUsername = doctorUsername;
+            this.dateTime = dateTime;
+            this.status = Status.REQUESTED;
+        }
+        public int getId() { 
+            return id;
+         }
+        public String getPatientUsername() {
+             return patientUsername;
+             }
+        public String getDoctorUsername() { 
+            return doctorUsername; 
+        }
+        public Status getStatus() {
+             return status; 
+            }
+        public void setStatus(Status s) {
+             this.status = s;
+             }
+        @Override public String toString() {
+            return String.format("Appointment[id=%d, patient=%s, doctor=%s, datetime=%s, status=%s]",
+                    id, patientUsername, doctorUsername, dateTime, status);
+        }
+    }
+
+    static class MedicalRecord {
+        String doctorUsername;
+        Date date;
+        String diagnosis;
+        String prescription;
+        public MedicalRecord(String doctorUsername, Date date, String diagnosis, String prescription) {
+            this.doctorUsername = doctorUsername;
+            this.date = date; this.diagnosis = diagnosis; 
+            this.prescription = prescription;
+        }
+        @Override public String toString() {
+            return String.format("Record[date=%s, doctor=%s, diagnosis=%s, prescription=%s]",
+                    date.toString(), doctorUsername, diagnosis, prescription);
+        }
+    }
+}
