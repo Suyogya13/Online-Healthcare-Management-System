@@ -1,0 +1,601 @@
+static class HealthcareSystemFrame extends JFrame {
+       private CardLayout cardLayout;
+        private JPanel cardsPanel;
+
+        private User currentUser;
+        private LoginPanel loginPanel;
+        private RegisterPanel registerPanel;
+        private PatientPanel patientPanel;
+        private DoctorPanel doctorPanel;
+        private AdminPanel adminPanel;
+
+        public HealthcareSystemFrame() {
+            setTitle("Online Healthcare Management System");
+            setSize(900, 600);
+            setLocationRelativeTo(null);
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            cardLayout = new CardLayout();
+            cardsPanel = new JPanel(cardLayout);
+            loginPanel = new LoginPanel();
+            registerPanel = new RegisterPanel();
+            patientPanel = new PatientPanel();
+            doctorPanel = new DoctorPanel();
+            adminPanel = new AdminPanel();
+
+            cardsPanel.add(loginPanel, "login");
+            cardsPanel.add(registerPanel, "register");
+            cardsPanel.add(patientPanel, "patient");
+            cardsPanel.add(doctorPanel, "doctor");
+            cardsPanel.add(adminPanel, "admin");
+
+            setContentPane(cardsPanel);
+            setVisible(true);
+        }
+
+        private void showCard(String name) {
+            cardLayout.show(cardsPanel, name);
+        }
+
+        private void setCurrentUser(User u) {
+            this.currentUser = u;
+            if (u instanceof Patient) {
+                patientPanel.setPatient((Patient) u);
+                showCard("patient");
+            } else if (u instanceof Doctor) {
+                doctorPanel.setDoctor((Doctor) u);
+                showCard("doctor");
+            } else if (u instanceof Admin) {
+                adminPanel.setAdmin((Admin) u);
+                showCard("admin");
+            }
+        }
+
+        private void logout() {
+            currentUser = null;
+            showCard("login");
+        }
+        class LoginPanel extends JPanel {
+            private JTextField usernameField;
+            private JPasswordField passwordField;
+            private JLabel messageLabel;
+
+            public LoginPanel() {
+                setLayout(new BorderLayout());
+
+                JLabel title = new JLabel("Online Healthcare Management System", SwingConstants.CENTER);
+                title.setFont(new Font("SansSerif", Font.BOLD, 22));
+                add(title, BorderLayout.NORTH);
+
+                JPanel form = new JPanel(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(5, 5, 5, 5);
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+
+                JLabel userLabel = new JLabel("Username:");
+                JLabel passLabel = new JLabel("Password:");
+                usernameField = new JTextField(20);
+                passwordField = new JPasswordField(20);
+
+                gbc.gridx = 0; gbc.gridy = 0;
+                form.add(userLabel, gbc);
+                gbc.gridx = 1;
+                form.add(usernameField, gbc);
+
+                gbc.gridx = 0; gbc.gridy = 1;
+                form.add(passLabel, gbc);
+                gbc.gridx = 1;
+                form.add(passwordField, gbc);
+
+                JPanel buttons = new JPanel();
+                JButton loginBtn = new JButton("Login");
+                JButton registerBtn = new JButton("Register");
+
+                buttons.add(loginBtn);
+                buttons.add(registerBtn);
+
+                gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+                form.add(buttons, gbc);
+
+                add(form, BorderLayout.CENTER);
+
+                messageLabel = new JLabel(" ", SwingConstants.CENTER);
+                add(messageLabel, BorderLayout.SOUTH);
+
+                loginBtn.addActionListener(e -> doLogin());
+                registerBtn.addActionListener(e -> showCard("register"));
+            }
+
+            private void doLogin() {
+                String username = usernameField.getText().trim();
+                String password = new String(passwordField.getPassword()).trim();
+
+                if (username.isEmpty() || password.isEmpty()) {
+                    messageLabel.setText("Please enter username and password.");
+                    return;
+                }
+
+                User u = authenticate(username, password); // uses your existing method
+                if (u == null) {
+                    messageLabel.setText("Invalid credentials.");
+                } else {
+                    messageLabel.setText("Login successful.");
+                    setCurrentUser(u);
+                    usernameField.setText("");
+                    passwordField.setText("");
+                }
+            }
+        }
+        class RegisterPanel extends JPanel {
+            private JRadioButton patientRadio;
+            private JRadioButton doctorRadio;
+            private JTextField usernameField;
+            private JPasswordField passwordField;
+            private JTextField fullNameField;
+            private JTextField ageOrSpecField;
+            private JLabel ageOrSpecLabel;
+            private JLabel messageLabel;
+
+            public RegisterPanel() {
+                setLayout(new BorderLayout());
+
+                JLabel title = new JLabel("Register New User", SwingConstants.CENTER);
+                title.setFont(new Font("SansSerif", Font.BOLD, 20));
+                add(title, BorderLayout.NORTH);
+
+                JPanel form = new JPanel(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(5, 5, 5, 5);
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+
+                patientRadio = new JRadioButton("Patient", true);
+                doctorRadio = new JRadioButton("Doctor");
+                ButtonGroup group = new ButtonGroup();
+                group.add(patientRadio);
+                group.add(doctorRadio);
+
+                JPanel rolePanel = new JPanel();
+                rolePanel.add(new JLabel("Register as: "));
+                rolePanel.add(patientRadio);
+                rolePanel.add(doctorRadio);
+
+                usernameField = new JTextField(20);
+                passwordField = new JPasswordField(20);
+                fullNameField = new JTextField(20);
+                ageOrSpecField = new JTextField(20);
+                ageOrSpecLabel = new JLabel("Age:");
+
+                int row = 0;
+                gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+                form.add(rolePanel, gbc);
+
+                gbc.gridwidth = 1;
+                row++;
+                gbc.gridx = 0; gbc.gridy = row;
+                form.add(new JLabel("Username:"), gbc);
+                gbc.gridx = 1;
+                form.add(usernameField, gbc);
+
+                row++;
+                gbc.gridx = 0; gbc.gridy = row;
+                form.add(new JLabel("Password:"), gbc);
+                gbc.gridx = 1;
+                form.add(passwordField, gbc);
+
+                row++;
+                gbc.gridx = 0; gbc.gridy = row;
+                form.add(new JLabel("Full Name:"), gbc);
+                gbc.gridx = 1;
+                form.add(fullNameField, gbc);
+
+                row++;
+                gbc.gridx = 0; gbc.gridy = row;
+                form.add(ageOrSpecLabel, gbc);
+                gbc.gridx = 1;
+                form.add(ageOrSpecField, gbc);
+
+                JPanel buttons = new JPanel();
+                JButton registerBtn = new JButton("Register");
+                JButton backBtn = new JButton("Back to Login");
+                buttons.add(registerBtn);
+                buttons.add(backBtn);
+
+                row++;
+                gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+                form.add(buttons, gbc);
+
+                add(form, BorderLayout.CENTER);
+
+                messageLabel = new JLabel(" ", SwingConstants.CENTER);
+                add(messageLabel, BorderLayout.SOUTH);
+
+                patientRadio.addActionListener(e -> ageOrSpecLabel.setText("Age:"));
+                doctorRadio.addActionListener(e -> ageOrSpecLabel.setText("Specialization:"));
+
+                registerBtn.addActionListener(e -> doRegister());
+                backBtn.addActionListener(e -> showCard("login"));
+            }
+
+            private void doRegister() {
+                String username = usernameField.getText().trim();
+                String password = new String(passwordField.getPassword()).trim();
+                String fullName = fullNameField.getText().trim();
+                String ageOrSpec = ageOrSpecField.getText().trim();
+
+                if (username.isEmpty() || password.isEmpty() || fullName.isEmpty() || ageOrSpec.isEmpty()) {
+                    messageLabel.setText("Please fill all fields.");
+                    return;
+                }
+
+                if (getUserByUsername(username) != null) {
+                    messageLabel.setText("Username already exists.");
+                    return;
+                }
+
+                if (patientRadio.isSelected()) {
+                    int age = 0;
+                    try {
+                        age = Integer.parseInt(ageOrSpec);
+                    } catch (NumberFormatException ex) {
+                        messageLabel.setText("Invalid age.");
+                        return;
+                    }
+                    Patient p = new Patient(username, password, fullName, age);
+                    users.add(p);
+                    messageLabel.setText("Patient registered successfully.");
+                } else {
+                    Doctor d = new Doctor(username, password, fullName, ageOrSpec);
+                    users.add(d);
+                    messageLabel.setText("Doctor registered successfully.");
+                }
+                usernameField.setText("");
+                passwordField.setText("");
+                fullNameField.setText("");
+                ageOrSpecField.setText("");
+            }
+        }
+        class PatientPanel extends JPanel {
+            private Patient patient;
+            private JTextArea outputArea;
+
+            public PatientPanel() {
+                setLayout(new BorderLayout());
+
+                JLabel title = new JLabel("Patient Dashboard", SwingConstants.CENTER);
+                title.setFont(new Font("SansSerif", Font.BOLD, 20));
+                add(title, BorderLayout.NORTH);
+
+                JPanel buttons = new JPanel(new GridLayout(3, 2, 10, 10));
+                JButton profileBtn = new JButton("View Profile");
+                JButton doctorsBtn = new JButton("Search / View Doctors");
+                JButton bookBtn = new JButton("Book Appointment");
+                JButton myApptsBtn = new JButton("View My Appointments");
+                JButton recordsBtn = new JButton("View Medical Records");
+                JButton logoutBtn = new JButton("Logout");
+
+                buttons.add(profileBtn);
+                buttons.add(doctorsBtn);
+                buttons.add(bookBtn);
+                buttons.add(myApptsBtn);
+                buttons.add(recordsBtn);
+                buttons.add(logoutBtn);
+
+                add(buttons, BorderLayout.WEST);
+
+                outputArea = new JTextArea();
+                outputArea.setEditable(false);
+                add(new JScrollPane(outputArea), BorderLayout.CENTER);
+
+                profileBtn.addActionListener(e -> showProfile());
+                doctorsBtn.addActionListener(e -> showDoctors());
+                bookBtn.addActionListener(e -> bookAppointmentGUI());
+                myApptsBtn.addActionListener(e -> showMyAppointments());
+                recordsBtn.addActionListener(e -> showMyRecords());
+                logoutBtn.addActionListener(e -> logout());
+            }
+
+            public void setPatient(Patient p) {
+                this.patient = p;
+                outputArea.setText("Welcome, " + p.getDisplayName() + " (Patient)\n");
+            }
+
+            private void showProfile() {
+                if (patient == null) return;
+                outputArea.setText(patient.toString());
+            }
+
+            private void showDoctors() {
+                StringBuilder sb = new StringBuilder("Available Doctors:\n");
+                boolean found = false;
+                for (User u : users) {
+                    if (u instanceof Doctor) {
+                        sb.append(u.toString()).append("\n");
+                        found = true;
+                    }
+                }
+                if (!found) sb.append("No doctors found.\n");
+                outputArea.setText(sb.toString());
+            }
+
+            private void bookAppointmentGUI() {
+                if (patient == null) return;
+
+                String docUsername = JOptionPane.showInputDialog(this,
+                        "Enter doctor's username:", "Book Appointment",
+                        JOptionPane.PLAIN_MESSAGE);
+                if (docUsername == null || docUsername.trim().isEmpty()) return;
+                docUsername = docUsername.trim();
+
+                User du = getUserByUsername(docUsername);
+                if (!(du instanceof Doctor)) {
+                    JOptionPane.showMessageDialog(this, "Invalid doctor username.", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String datetime = JOptionPane.showInputDialog(this,
+                        "Enter date/time (e.g. 2025-11-20 10:30):",
+                        "Appointment Date/Time",
+                        JOptionPane.PLAIN_MESSAGE);
+                if (datetime == null || datetime.trim().isEmpty()) return;
+
+                Appointment ap = new Appointment(appointmentIdCounter++,
+                        patient.getUsername(),
+                        docUsername,
+                        datetime.trim());
+                appointments.add(ap);
+                outputArea.setText("Appointment request created:\n" + ap.toString());
+            }
+
+            private void showMyAppointments() {
+                if (patient == null) return;
+                StringBuilder sb = new StringBuilder("My Appointments:\n");
+                boolean found = false;
+                for (Appointment a : appointments) {
+                    if (a.getPatientUsername().equals(patient.getUsername())) {
+                        sb.append(a.toString()).append("\n");
+                        found = true;
+                    }
+                }
+                if (!found) sb.append("No appointments.\n");
+                outputArea.setText(sb.toString());
+            }
+
+            private void showMyRecords() {
+                if (patient == null) return;
+                StringBuilder sb = new StringBuilder("My Medical Records:\n");
+                if (patient.getRecords().isEmpty()) {
+                    sb.append("No records found.\n");
+                } else {
+                    for (MedicalRecord r : patient.getRecords()) {
+                        sb.append(r.toString()).append("\n");
+                    }
+                }
+                outputArea.setText(sb.toString());
+            }
+        }
+
+        class DoctorPanel extends JPanel {
+            private Doctor doctor;
+            private JTextArea outputArea;
+
+            public DoctorPanel() {
+                setLayout(new BorderLayout());
+
+                JLabel title = new JLabel("Doctor Dashboard", SwingConstants.CENTER);
+                title.setFont(new Font("SansSerif", Font.BOLD, 20));
+                add(title, BorderLayout.NORTH);
+
+                JPanel buttons = new JPanel(new GridLayout(3, 2, 10, 10));
+                JButton profileBtn = new JButton("View Profile");
+                JButton myApptsBtn = new JButton("View My Appointments");
+                JButton pendingBtn = new JButton("Approve / Reject Appointments");
+                JButton addRecordBtn = new JButton("Add Medical Record");
+                JButton patientsBtn = new JButton("View Patients");
+                JButton logoutBtn = new JButton("Logout");
+
+                buttons.add(profileBtn);
+                buttons.add(myApptsBtn);
+                buttons.add(pendingBtn);
+                buttons.add(addRecordBtn);
+                buttons.add(patientsBtn);
+                buttons.add(logoutBtn);
+
+                add(buttons, BorderLayout.WEST);
+
+                outputArea = new JTextArea();
+                outputArea.setEditable(false);
+                add(new JScrollPane(outputArea), BorderLayout.CENTER);
+
+                profileBtn.addActionListener(e -> showProfile());
+                myApptsBtn.addActionListener(e -> showMyAppointments());
+                pendingBtn.addActionListener(e -> handlePendingAppointments());
+                addRecordBtn.addActionListener(e -> addMedicalRecordGUI());
+                patientsBtn.addActionListener(e -> showPatients());
+                logoutBtn.addActionListener(e -> logout());
+            }
+
+            public void setDoctor(Doctor d) {
+                this.doctor = d;
+                outputArea.setText("Welcome, " + d.getDisplayName() + " (Doctor)\n");
+            }
+
+            private void showProfile() {
+                if (doctor == null) return;
+                outputArea.setText(doctor.toString());
+            }
+
+            private void showMyAppointments() {
+                if (doctor == null) return;
+                StringBuilder sb = new StringBuilder("My Appointments:\n");
+                boolean found = false;
+                for (Appointment a : appointments) {
+                    if (a.getDoctorUsername().equals(doctor.getUsername())) {
+                        sb.append(a.toString()).append("\n");
+                        found = true;
+                    }
+                }
+                if (!found) sb.append("No appointments.\n");
+                outputArea.setText(sb.toString());
+            }
+
+            private void handlePendingAppointments() {
+                if (doctor == null) return;
+                StringBuilder sb = new StringBuilder("Pending Appointments:\n");
+                for (Appointment a : appointments) {
+                    if (a.getDoctorUsername().equals(doctor.getUsername())
+                            && a.getStatus() == Appointment.Status.REQUESTED) {
+                        sb.append(a.toString()).append("\n");
+                    }
+                }
+                outputArea.setText(sb.toString());
+
+                String idStr = JOptionPane.showInputDialog(this,
+                        "Enter appointment ID to approve/reject (or cancel):",
+                        "Approve/Reject",
+                        JOptionPane.PLAIN_MESSAGE);
+                if (idStr == null || idStr.trim().isEmpty()) return;
+
+                int id;
+                try {
+                    id = Integer.parseInt(idStr.trim());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid ID.", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Appointment target = null;
+                for (Appointment a : appointments) {
+                    if (a.getId() == id && a.getDoctorUsername().equals(doctor.getUsername())) {
+                        target = a;
+                        break;
+                    }
+                }
+                if (target == null) {
+                    JOptionPane.showMessageDialog(this, "Appointment not found.", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String[] options = {"Approve", "Reject", "Cancel"};
+                int choice = JOptionPane.showOptionDialog(this,
+                        "Appointment: " + target.toString(),
+                        "Approve / Reject",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null, options, options[0]);
+
+                if (choice == 0) {
+                    target.setStatus(Appointment.Status.APPROVED);
+                } else if (choice == 1) {
+                    target.setStatus(Appointment.Status.REJECTED);
+                }
+                showMyAppointments();
+            }
+
+            private void addMedicalRecordGUI() {
+                if (doctor == null) return;
+                String patientUsername = JOptionPane.showInputDialog(this,
+                        "Enter patient username:",
+                        "Add Medical Record",
+                        JOptionPane.PLAIN_MESSAGE);
+                if (patientUsername == null || patientUsername.trim().isEmpty()) return;
+                patientUsername = patientUsername.trim();
+
+                User pu = getUserByUsername(patientUsername);
+                if (!(pu instanceof Patient)) {
+                    JOptionPane.showMessageDialog(this, "Invalid patient username.", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String diagnosis = JOptionPane.showInputDialog(this,
+                        "Enter diagnosis:",
+                        "Diagnosis",
+                        JOptionPane.PLAIN_MESSAGE);
+                if (diagnosis == null || diagnosis.trim().isEmpty()) return;
+
+                String prescription = JOptionPane.showInputDialog(this,
+                        "Enter prescription:",
+                        "Prescription",
+                        JOptionPane.PLAIN_MESSAGE);
+                if (prescription == null || prescription.trim().isEmpty()) return;
+
+                MedicalRecord mr = new MedicalRecord(doctor.getUsername(), new Date(), diagnosis.trim(),
+                        prescription.trim());
+                ((Patient) pu).addMedicalRecord(mr);
+
+                outputArea.setText("Medical record added for " + pu.getDisplayName() + "\n" + mr.toString());
+            }
+
+            private void showPatients() {
+                StringBuilder sb = new StringBuilder("Patients:\n");
+                boolean found = false;
+                for (User u : users) {
+                    if (u instanceof Patient) {
+                        sb.append(u.toString()).append("\n");
+                        found = true;
+                    }
+                }
+                if (!found) sb.append("No patients found.\n");
+                outputArea.setText(sb.toString());
+            }
+        }
+        class AdminPanel extends JPanel {
+            private Admin admin;
+            private JTextArea outputArea;
+
+            public AdminPanel() {
+                setLayout(new BorderLayout());
+
+                JLabel title = new JLabel("Admin Dashboard", SwingConstants.CENTER);
+                title.setFont(new Font("SansSerif", Font.BOLD, 20));
+                add(title, BorderLayout.NORTH);
+
+                JPanel buttons = new JPanel(new GridLayout(2, 2, 10, 10));
+                JButton allUsersBtn = new JButton("View All Users");
+                JButton allApptsBtn = new JButton("View All Appointments");
+                JButton logoutBtn = new JButton("Logout");
+
+                buttons.add(allUsersBtn);
+                buttons.add(allApptsBtn);
+                buttons.add(new JLabel()); // spacer
+                buttons.add(logoutBtn);
+
+                add(buttons, BorderLayout.WEST);
+
+                outputArea = new JTextArea();
+                outputArea.setEditable(false);
+                add(new JScrollPane(outputArea), BorderLayout.CENTER);
+
+                allUsersBtn.addActionListener(e -> showAllUsers());
+                allApptsBtn.addActionListener(e -> showAllAppointments());
+                logoutBtn.addActionListener(e -> logout());
+            }
+
+            public void setAdmin(Admin a) {
+                this.admin = a;
+                outputArea.setText("Welcome, " + a.getDisplayName() + " (Admin)\n");
+            }
+
+            private void showAllUsers() {
+                StringBuilder sb = new StringBuilder("All Users:\n");
+                for (User u : users) {
+                    sb.append(u.toString()).append("\n");
+                }
+                outputArea.setText(sb.toString());
+            }
+
+            private void showAllAppointments() {
+                StringBuilder sb = new StringBuilder("All Appointments:\n");
+                if (appointments.isEmpty()) {
+                    sb.append("No appointments.\n");
+                } else {
+                    for (Appointment a : appointments) {
+                        sb.append(a.toString()).append("\n");
+                    }
+                }
+                outputArea.setText(sb.toString());
+            }
+        }
+    }
