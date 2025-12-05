@@ -4,42 +4,35 @@ A Java-based healthcare management system with both Console Interface and Swing 
 This project includes appointment booking, medical record management, user authentication, and admin monitoring features.
 
 ===> Features
-** User Roles
-1.Patient
-2.View profile
-3.Search doctors
-4.Book appointments
-5.View appointment history
-6.View medical records
-7.Doctor
-8.View profile
-9.View appointments
-10.Approve/Reject appointment requests
-11.Add medical records
-12.View list of patients
-13.Admin
-14.View all users
-15.View all appointments
-16.Manage system data
+1. Doctor Module
+2.View assigned appointments
+3.Approve or reject appointment requests
+4.Manage schedules
+5.View patient details (extendable)
+==> Patient Module
+1.Create account & log in
+2.Book appointments with doctors
+3.View appointment status
+4.Manage profile (extendable)
+==> Admin (Optional Future Scope)
+1.Manage doctors & patients
+2.View system-wide reports
+3.Monitor activity logs
 
-===> GUI Interface (Swing)
-1) This project includes a fully functional GUI built with Java Swing, featuring:
-2) Login & registration screens
-3) Patient dashboard
-4) Doctor dashboard
-5) Admin dashboard
-6) Pop-up dialogs for booking appointments, approvals, and record entry
+==> JavaFX Overview
 
-===> System Interface Screenshots
-1) Login Interface
-2) Patient Dashboard
-3) Doctor Dashboard
-4) Admin Dashboard
+ JavaFX is used to build a modern, responsive UI.
+Key JavaFX benefits:
+1)FXML separation (UI layout separate from logic)
+2)Scene Builder support for drag-and-drop UI design
+3)CSS styling for themes
+4)Built-in controls like TableView, ComboBox, DatePicker
+5)Ideal for desktop management systems
 
 ===> Technologies Used
 
 1) Java (JDK 8+)
-2) Swing GUI
+2) JavaFX
 3) OOP Principles
 4) Collections Framework
 
@@ -50,14 +43,26 @@ Admin	admin	admin123
 Doctor	dr_raj	doc123
 Patient	peter	pass
 Patient	arya	pass
+
 ===> Features to Improve (Future Scope)
+
 1)Database integration (MySQL / PostgreSQL)
 2)JWT-based secure authentication
 3)Web or Android version
 4)Email notifications for appointments
 5)Prescription PDF generation
 
-====> Contributing
+===>Learning Outcomes
+
+By working on this project, I will learn:
+1.Java OOP concepts (classes, inheritance, collections)
+2.JavaFX UI application development
+3.MVC architecture & clean project structure
+4.FXML-based UI design
+5.Event handling & scene navigation
+6.Building real-world desktop applications
+
+ ====> Contributing
 
 Pull requests are welcome!
 For major changes, please open an issue first to discuss what you would like to modify.
