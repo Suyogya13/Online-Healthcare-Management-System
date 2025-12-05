@@ -1,11 +1,3 @@
-import java.util.*;
-import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
 public class HealthcareSystem {
      static List<User> users = new ArrayList<>();
      static List<Appointment> appointments = new ArrayList<>();
